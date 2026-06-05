@@ -1,0 +1,133 @@
+@WebApi_HostAddress = http://localhost:5247
+
+GET {{WebApi_HostAddress}}/api/students
+Accept: application/json
+
+###
+GET {{WebApi_HostAddress}}/api/students/920085ee-3beb-479b-8f0b-17f058196092
+Accept: application/json
+
+###
+POST {{WebApi_HostAddress}}/api/students
+Content-Type: application/json
+
+{
+  "firstName": "Adam",
+  "lastName": "Nowak",
+  "email": "adam@wsei.edu.pl",
+  "nationalId": "12345678901",
+  "studentId": "",
+  "yearOfStudy": 1,
+  "programCode": "INF",
+  "enrollmentYearFrom": 2024
+}
+
+###
+POST {{WebApi_HostAddress}}/api/students
+Content-Type: application/json
+
+{
+  "firstName": "Adam",
+  "lastName": "Nowak"
+}
+
+###
+PUT {{WebApi_HostAddress}}/api/students/920085ee-3beb-479b-8f0b-17f058196092
+Content-Type: application/json
+
+{
+  "firstName": "Adam",
+  "lastName": "Nowak",
+  "email": "adam@wsei.edu.pl",
+  "yearOfStudy": 3,
+  "status": 0,
+  "programCode": "INF"
+}
+###
+GET {{WebApi_HostAddress}}/api/courses
+Accept: application/json
+
+###
+GET {{WebApi_HostAddress}}/api/lecturers
+Accept: application/json
+
+###
+GET {{WebApi_HostAddress}}/api/academicyears
+Accept: application/json
+
+###
+###
+###
+POST {{WebApi_HostAddress}}/api/students/570419c0-29c5-4185-a9e4-a891155e8dc1/grades
+Content-Type: application/json
+
+{
+  "courseId": "9dce8d2c-b902-46e6-9726-6dbbf30d9219",
+  "lecturerId": "32f8f5b1-6b1c-4511-9f4f-67b99be817fc",
+  "academicYearId": "4eb1fa7a-8723-4074-a91b-cac7a207f337",
+  "date": "2026-01-15T00:00:00",
+  "gradeType": 0,
+  "gradeValue": 40
+}
+###
+GET {{WebApi_HostAddress}}/api/students/570419c0-29c5-4185-a9e4-a891155e8dc1/grades
+Accept: application/json
+
+
+
+###
+GET {{WebApi_HostAddress}}/api/lecturers
+Accept: application/json
+
+###
+POST {{WebApi_HostAddress}}/api/lecturers
+Content-Type: application/json
+
+{
+  "firstName": "Marek",
+  "lastName": "Kowalski",
+  "email": "marek.kowalski@uczelnia.pl",
+  "nationalId": "12345678902",
+  "title": "prof.",
+  "faculty": "Wydział Matematyki"
+}
+
+###
+GET {{WebApi_HostAddress}}/api/lecturers/9feb0023-962e-46a9-a933-569b95e3f5a6
+Accept: application/json
+###
+###
+PATCH {{WebApi_HostAddress}}/api/students/c65884c1-f7ca-4d1c-9473-0030e1e46093/assign?degreeProgramId=6a189450-086c-40a8-80e1-3e9f8f1f1cff&academicYearId=f54f5f48-aca5-4301-9055-b53d7cff0d23
+Accept: application/json
+
+###
+POST {{WebApi_HostAddress}}/api/students
+Content-Type: application/json
+
+{
+  "firstName": "Adam",
+  "lastName": "Nowak",
+  "email": "adam@wsei.edu.pl",
+  "nationalId": "12345678901",
+  "studentId": "",
+  "yearOfStudy": 1,
+  "programCode": "INF",
+  "enrollmentYearFrom": 2024
+}
+###
+###
+POST {{WebApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@uczelnia.pl",
+  "password": "Admin@123!"
+}
+###
+GET {{WebApi_HostAddress}}/api/students
+Accept: application/json
+
+###
+GET {{WebApi_HostAddress}}/api/students
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IkY1QkFERTE0LTZDQzgtNDJBMi05QTQ0LTk4NDJEQTJEOTI4MCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHVjemVsbmlhLnBsIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZ2l2ZW5uYW1lIjoiQWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiU3lzdGVtIiwiZGVwYXJ0bWVudCI6IklUIiwianRpIjoiOTc5YjhkMGUtMWY0Mi00YTM3LTgwOWQtNGZmY2QwY2ExODkwIiwiaWF0IjoiMTc4MDYwNjczNiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluaXN0cmF0b3IiLCJuYmYiOjE3ODA2MDY3MzYsImV4cCI6MTc4MDYxMDMzNiwiaXNzIjoiVW5pdmVyc2l0eUFwaUFwcCIsImF1ZCI6IkFwcENsaWVudCJ9.p0BR-3RI8avBZzUbIS0Kvr5yl-5L4ecjLT3C73QAAyo
