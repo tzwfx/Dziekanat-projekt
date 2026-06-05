@@ -4,65 +4,150 @@
 - Jakub Maj 
 
 ## Link do repozytorium
-[GitHub Repository](LINK_DO_REPO)
+[GitHub Repository](https://github.com/tzwfx/Dziekanat-projekt)
 
 ## Opis projektu
-Aplikacja REST API do zarządzania uczelnią, umożliwiająca obsługę studentów, prowadzących, ocen oraz autoryzację użytkowników.
+Aplikacja REST API do zarządzania uczelnią, zbudowana w architekturze modularnego monolitu (Clean Architecture). Umożliwia obsługę studentów, prowadzących, ocen, kierunków studiów oraz autoryzację użytkowników systemu dziekanatu.
 
 ## Zrealizowane funkcje
 
-### Zarządzanie studentami
+
+## Definicja encji, DTO, repozytoria, testy jednostkowe
+
+- Definicja encji domenowych zgodnie z diagramem UML:
+  - `BaseEntity` — klasa bazowa z kluczem `Guid`
+  - `Person` (abstrakcyjna) → `Student`, `Lecturer`
+  - `Grade`, `Course`, `DegreeProgram`, `AcademicYear`
+- Typy wyliczeniowe: `StudentStatus`, `GradeValue`, `GradeType`, `DegreeType`, `CompletionType`, `Semester`
+- Klasa rozszerzeń `GradeExtensions` z metodami `Value()`, `Parse()`, `GradeValues()`, `PolishName()`
+- Definicja klas DTO w module `CoreApp`:
+  - `PersonDto`, `PersonCreateDto`
+  - `StudentSummaryDto`, `StudentDetailDto`, `StudentCreateDto`, `StudentUpdateDto`
+  - `LecturerSummaryDto`, `LecturerDetailDto`, `LecturerCreateDto`, `LecturerUpdateDto`
+- Definicja generycznego interfejsu repozytorium `IGenericRepositoryAsync<T>`
+- Klasa `PagedResult<T>` — kontener na porcję danych z paginacją
+- Definicja interfejsów repozytoriów konkretnych:
+  - `IStudentRepository` — wyszukiwanie po roku, kierunku, zmiana statusu
+  - `ILecturerRepository` — wyszukiwanie po kursie, tytule, wydziale
+  - `IGradeRepository` — wyszukiwanie po studencie i kursie
+- Implementacja generycznego repozytorium w pamięci (`MemoryGenericRepository`)
+- Testy jednostkowe repozytorium w pamięci (`MemoryGenericRepositoryTest`):
+  - Test dodawania encji
+  - Test pobierania po Id
+  - Test pobierania wszystkich
+  - Test aktualizacji
+  - Test usuwania
+
+### Architektura, mapowanie, repozytoria
+
+- Zdefiniowanie encji domenowych: `Student`, `Lecturer`, `Grade`, `Course`, `DegreeProgram`, `AcademicYear`
+- Mapowanie encji na DTO za pomocą operatorów rzutowania (`explicit operator`)
+- Implementacja generycznego repozytorium w pamięci (`MemoryGenericRepository`)
+- Implementacja repozytoriów dla konkretnych encji: `MemoryStudentRepository`, `MemoryLecturerRepository`, `MemoryGradeRepository`
+- Implementacja wzorca Unit of Work (`IUniversityUnitOfWork`, `MemoryUniversityUnitOfWork`)
+- Implementacja serwisu studentów w pamięci (`MemoryStudentService`)
+- Rejestracja klas w kontenerze DI jako singletony
+- Pierwszy kontroler REST API dla studentów (`StudentsController`)
+
+### Walidacja FluentValidation
+
+- Instalacja i konfiguracja biblioteki `FluentValidation.AspNetCore`
+- Walidator dla `StudentCreateDto` — imię, nazwisko, email, PESEL, rok studiów, kod programu
+- Walidator dla `StudentUpdateDto`
+- Walidator dla `GradeDto` — poprawność oceny, daty, identyfikatorów
+- Moduł rejestracji walidatorów (`StudentModule`)
+- Automatyczna walidacja żądań HTTP (400 Bad Request przy błędnych danych)
+- Testowanie API za pomocą pliku `WebApi.http`
+
+### Oceny, wyjątki, obsługa błędów
+
+- Dodawanie oceny studentowi (`POST /api/students/{id}/grades`)
+- Pobieranie ocen studenta (`GET /api/students/{id}/grades`)
+- Edycja oceny — zmiana wartości, daty i typu (`PUT /api/students/{studentId}/grades/{gradeId}`)
+- Definicja własnych wyjątków domenowych: `StudentNotFoundException`, `LecturerNotFoundException`, `CourseNotFoundException`
+- Globalny handler wyjątków (`ProblemDetailsExceptionHandler`) — zwraca 404 zamiast 500
+- Rejestracja handlera w pipeline middleware
+
+### Zadanie 12 — API dla pracownika dziekanatu
+
+#### Zarządzanie studentami
 - Rejestracja nowego studenta (`POST /api/students`)
 - Pobieranie listy studentów z paginacją (`GET /api/students`)
 - Pobieranie szczegółów studenta (`GET /api/students/{id}`)
-- Aktualizacja danych studenta (`PUT /api/students/{id}`)
+- Aktualizacja danych osobowych studenta (`PUT /api/students/{id}`)
 - Zmiana statusu studenta — aktywny, urlop, skreślenie, absolwent (`PATCH /api/students/{id}/status`)
 - Przypisanie studenta do kierunku studiów i roku akademickiego (`PATCH /api/students/{id}/assign`)
 
-### Zarządzanie ocenami
-- Dodawanie oceny studentowi (`POST /api/students/{id}/grades`)
-- Pobieranie ocen studenta (`GET /api/students/{id}/grades`)
-- Edycja oceny (`PUT /api/students/{studentId}/grades/{gradeId}`)
-
-### Zarządzanie prowadzącymi
+#### Zarządzanie prowadzącymi
 - Rejestracja nowego prowadzącego (`POST /api/lecturers`)
 - Pobieranie listy prowadzących (`GET /api/lecturers`)
 - Pobieranie szczegółów prowadzącego (`GET /api/lecturers/{id}`)
 - Aktualizacja danych prowadzącego — tytuł, wydział, email (`PUT /api/lecturers/{id}`)
 - Pobieranie listy kursów prowadzącego (`GET /api/lecturers/{id}/courses`)
 
-### Autoryzacja i uwierzytelnianie
-- Logowanie i generowanie tokenów JWT (`POST /api/auth/login`)
-- Odświeżanie tokenu dostępu (`POST /api/auth/refresh`)
-- Wylogowanie — unieważnienie tokenu (`POST /api/auth/revoke`)
-- Pobieranie danych zalogowanego użytkownika (`GET /api/auth/me`)
+### Entity Framework Core, SQLite, Identity
 
-### Walidacja
-- Walidacja danych wejściowych za pomocą FluentValidation
-- Automatyczna walidacja DTO przy tworzeniu i edycji studentów
+- Instalacja paczek EF Core, SQLite, ASP.NET Identity
+- Definicja `UniversityDbContext` dziedziczącego po `IdentityDbContext`
+- Konfiguracja mapowania encji (TPH dla `Person` → `Student`/`Lecturer`)
+- Implementacja repozytoriów EF: `EfGenericRepository`, `EfStudentRepository`, `EfLecturerRepository`, `EfGradeRepository`
+- Implementacja `EfUniversityUnitOfWork`
+- Definicja klas użytkowników systemu: `AppUser`, `AppRole`
+- Interfejs `ISystemUser` z rolami `UserRole` i statusami `SystemUserStatus`
+- Moduł rejestracji infrastruktury (`UniversityInfrastructureModule`)
+- Wykonanie migracji i aktualizacja bazy danych SQLite
+- Dane inicjalne — role: Administrator, DeanOfficeWorker, Lecturer, Student
+- Dane inicjalne — użytkownicy: admin, pracownik dziekanatu
 
-### Baza danych
-- Trwałe przechowywanie danych w bazie SQLite za pomocą Entity Framework Core
-- Obsługa tożsamości użytkowników przez ASP.NET Identity
+### Autoryzacja JWT
 
-### Testy
-- Testy integracyjne API z bazą InMemory (8 testów)
-- Testy jednostkowe repozytorium generycznego (5 testów)
+- Instalacja paczek JWT Bearer
+- Konfiguracja `JwtSettings` z odczytem z `appsettings.json`
+- Definicja polityk autoryzacji (`AppPolicies`): AdminOnly, DeanOfficeWorkerOnly, LecturerOnly, StudentOnly, ActiveUser
+- DTO dla autoryzacji: `LoginDto`, `AuthResponseDto`, `RefreshTokenDto`, `UserDto`
+- Encja `RefreshToken` z obsługą wygasania i unieważniania tokenów
+- Implementacja `AuthService` z metodami:
+  - Logowanie i generowanie tokenów JWT (`LoginAsync`)
+  - Odświeżanie tokenu dostępu (`RefreshTokenAsync`)
+  - Unieważnienie tokenu — wylogowanie (`RevokeTokenAsync`)
+- Kontroler autoryzacji (`AuthController`):
+  - `POST /api/auth/login` — logowanie
+  - `POST /api/auth/refresh` — odświeżenie tokenu
+  - `POST /api/auth/revoke` — wylogowanie
+  - `GET /api/auth/me` — dane zalogowanego użytkownika
+- Seeder użytkowników i ról (`IdentityDbSeeder`)
+- Zabezpieczenie endpointów atrybutem `[Authorize]` z politykami
+
+### Testy integracyjne
+
+- Konfiguracja projektu testowego z `Microsoft.AspNetCore.Mvc.Testing`
+- `UniversityAppTestFactory` — podmiana bazy SQLite na InMemory w testach
+- Klasa `StudentsApiTest` z testami integracyjnymi:
+  - Test statusu 401 dla nieautoryzowanego dostępu do listy studentów
+  - Test tworzenia studenta (201 Created)
+- Klasa `MemoryGenericRepositoryTest` z testami jednostkowymi:
+  - Test dodawania encji
+  - Test pobierania po Id
+  - Test pobierania wszystkich
+  - Test aktualizacji
+  - Test usuwania
+- Łącznie 8 testów — wszystkie zielone ✅
 
 ## Dane przykładowe
-Aplikacja automatycznie tworzy przy starcie:
 
-### Użytkownicy
+### Użytkownicy (tworzone automatycznie przy starcie)
 | Email | Hasło | Rola |
 |-------|-------|------|
 | admin@uczelnia.pl | Admin@123! | Administrator |
 | dziekanat@uczelnia.pl | Dziekanat@123! | DeanOfficeWorker |
 
 ### Role
-- `Administrator` — pełny dostęp do systemu
-- `DeanOfficeWorker` — pracownik dziekanatu
-- `Lecturer` — wykładowca
-- `Student` — student
+| Rola | Opis |
+|------|------|
+| Administrator | Pełny dostęp do systemu |
+| DeanOfficeWorker | Pracownik dziekanatu |
+| Lecturer | Wykładowca |
+| Student | Student |
 
 ## Uruchomienie projektu
 
@@ -92,9 +177,10 @@ dotnet run
 4. Aplikacja dostępna pod adresem: `http://localhost:5247`
 
 ### Testowanie API
+
 Użyj pliku `WebApi/WebApi.http` w Riderze lub narzędzia Postman.
 
-Przykładowe logowanie:
+**Logowanie:**
 ```http
 POST http://localhost:5247/api/auth/login
 Content-Type: application/json
@@ -103,6 +189,12 @@ Content-Type: application/json
   "email": "admin@uczelnia.pl",
   "password": "Admin@123!"
 }
+```
+
+**Dostęp do chronionych endpointów:**
+```http
+GET http://localhost:5247/api/students
+Authorization: Bearer TWOJ_TOKEN
 ```
 
 ### Uruchomienie testów
